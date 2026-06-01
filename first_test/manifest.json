@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Page Summariser",
+  "version": "1.0",
+  "description": "A simple way to summarise the current page",
+
+  "permissions": ["activeTab", "sidePanel", "scripting"],
+  "host_permissions": ["<all_urls>"],
+
+  "action": {
+    "default_title": "Summarise this page"
+  },
+
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+
+  "background": {
+    "service_worker": "background.js"
+  }
+}

@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Tab TL;DR</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h1>Chrome Clutch</h1>
+    <p class="subtitle">Gemini Nano · No API key · No network</p>
+
+    <button id="analyseBtn" class="btn primary">Summarise this page</button>
+
+    <div class="translation-section" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color, #e0e0e0);">
+      <div class="settings-group">
+        <label for="targetLangSelect" class="settings-label">Target Language:</label>
+        <select id="targetLangSelect" class="select-dropdown">
+          <option value="default" selected>Default (No Translation)</option>
+          <option value="en">English</option>
+          <option value="fr">French (Français)</option>
+          <option value="es">Spanish (Español)</option>
+          <option value="nl">Dutch (Nederlands)</option>
+          <option value="pt">Portuguese (Português)</option>
+        </select>
+      </div>
+      <button id="translatePageBtn" class="btn primary">Translate this page</button>
+    </div>
+
+    <!-- Chat with Page / Q&A Section -->
+    <div class="qa-section">
+      <h3 class="qa-title">Chat with this Page</h3>
+      
+      <!-- Chat history area -->
+      <div id="chatHistory" class="chat-history">
+        <!-- Chat bubbles will go here -->
+      </div>
+      
+      <div class="chat-input-container">
+        <textarea id="questionInput" placeholder="Ask a question about this page..." rows="2" class="chat-textarea"></textarea>
+        <div class="chat-buttons">
+          <button id="askBtn" class="btn primary">Ask</button>
+          <button id="clearChatBtn" class="btn secondary">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loading" class="loading hidden">
+      <div class="spinner"></div>
+      <p>Thinking with Gemini Nano...</p>
+    </div>
+
+    <!-- Error state -->
+    <div id="error" class="error hidden"></div>
+
+    <!-- Results -->
+    <div id="output" class="hidden">
+
+      <h3>TL;DR</h3>
+      <p id="summaryText"></p>
+
+      <h3>Key Points</h3>
+      <ul id="keyPointsList"></ul>
+
+    </div>
+  </div>
+
+  <script src="lib/marked.min.js"></script>
+  <script type="module" src="sidepanel.js"></script>
+</body>
+
+</html>
