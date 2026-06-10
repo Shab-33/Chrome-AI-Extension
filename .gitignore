@@ -1,0 +1,13 @@
+"Chrome Apis X Extensions.pptx"
+*.pptx
+*.pdf
+
+Thumbs.db
+desktop.ini
+.DS_Store
+
+.vscode/
+.idea/
+
+node_modules/
+.env
