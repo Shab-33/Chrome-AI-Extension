@@ -13,3 +13,5 @@ node_modules/
 .env
 
 extension copy/
+
+first_test/
