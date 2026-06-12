@@ -1,16 +1,21 @@
-// modules/summarizer.js
-// Responsible for generating a TL;DR summary using Chrome's Summarizer API.
-
-/**
- * Summarises the given text into a short TL;DR.
- * @param {string} text - The page text to summarise.
- * @returns {Promise<string>} The generated summary.
- */
-export async function summarizeText(text) {
+// Summarises the given text into a short TL;DR
+export async function summarizeText(text, onUpdate) {
   const summarizer = await Summarizer.create({
     type: "tldr",
     length: "short",
     outputLanguage: "en",
   });
-  return await summarizer.summarize(text);
+  
+  if (!onUpdate) {
+    return await summarizer.summarize(text);
+  }
+  
+  const stream = summarizer.summarizeStreaming(text);
+  let result = '';
+  for await (const chunk of stream) {
+    const newContent = chunk.startsWith(result) ? chunk.slice(result.length) : chunk;
+    result += newContent;
+    onUpdate(result);
+  }
+  return result;
 }

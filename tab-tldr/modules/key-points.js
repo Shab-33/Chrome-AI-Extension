@@ -1,17 +1,7 @@
-// modules/key-points.js
-// Responsible for extracting structured key points using Chrome's Prompt API (LanguageModel).
-
-/**
- * Extracts 3-5 key points from the given text using the Prompt API.
- * Attempts the modern `responseConstraint` schema approach first,
- * then falls back to a raw JSON prompt if the browser doesn't support it.
- * @param {string} text - The page text to extract points from.
- * @returns {Promise<string[]>} Array of key point strings.
- */
+// Extracts 3-5 key points from text using the Prompt API
 export async function extractKeyPoints(text) {
   const snippet = text.slice(0, 2000);
 
-  // ── Attempt 1: responseConstraint (guaranteed JSON output) ──
   try {
     const schema = {
       type: "object",
@@ -45,7 +35,6 @@ export async function extractKeyPoints(text) {
     );
   }
 
-  // ── Attempt 2: Basic prompt with manual JSON cleanup ──
   const session = await LanguageModel.create({
     systemPrompt:
       "You extract key points from text. Return ONLY a raw JSON array of strings. No markdown. No backticks. No explanation.",

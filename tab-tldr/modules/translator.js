@@ -1,45 +1,30 @@
-// modules/translator.js
-// Responsible for direct webpage DOM translation using Chrome's Built-in Translator API.
-
-/**
- * Returns the Translator API constructor available in the current context.
- * Chrome ships this under different global names depending on version/origin trial.
- * @returns {object|null}
- */
+// Returns the Translator API constructor available in the current context
 function getTranslatorAPI() {
   if (typeof translation !== "undefined") return translation;
   if (typeof Translator !== "undefined") return Translator;
   return null;
 }
 
-/**
- * Creates a translator instance, handling language pack downloads with progress.
- * @param {object} translationObj - The Translator API constructor.
- * @param {string} sourceLang - ISO source language code.
- * @param {string} targetLang - ISO target language code.
- * @param {function} [onProgress] - Optional callback receiving a percentage (0-100).
- * @returns {Promise<object>} A ready-to-use translator instance.
- */
+// Creates a translator instance
 async function createTranslator(translationObj, sourceLang, targetLang, onProgress) {
-  return translationObj.create({
-    sourceLanguage: sourceLang,
-    targetLanguage: targetLang,
+  const options = {
+    sourceLanguage: sourceLang.split('-')[0],
+    targetLanguage: targetLang.split('-')[0],
     monitor(m) {
       m.addEventListener("downloadprogress", (e) => {
         const progress = Math.round((e.loaded / e.total) * 100);
         if (onProgress) onProgress(progress);
       });
     },
-  });
+  };
+  
+  if (typeof translationObj.createTranslator === "function") {
+    return translationObj.createTranslator(options);
+  }
+  return translationObj.create(options);
 }
 
-/**
- * Translates the active webpage's DOM text nodes in-place.
- * Coordinates translation from the sidepanel context to avoid webpage-specific execution issues.
- * @param {string} sourceLang - ISO source language code.
- * @param {string} targetLang - ISO target language code.
- * @param {HTMLButtonElement} btn - The button element to update with status text.
- */
+// Translates the active webpage's DOM text nodes in-place
 export async function translateWebpage(sourceLang, targetLang, btn) {
   const originalText = btn.textContent;
   btn.disabled = true;
@@ -56,8 +41,8 @@ export async function translateWebpage(sourceLang, targetLang, btn) {
     let canTranslate = "readily";
     if (typeof translationObj.canTranslate === "function") {
       canTranslate = await translationObj.canTranslate({
-        sourceLanguage: sourceLang,
-        targetLanguage: targetLang,
+        sourceLanguage: sourceLang.split('-')[0],
+        targetLanguage: targetLang.split('-')[0],
       });
     }
 
@@ -81,7 +66,6 @@ export async function translateWebpage(sourceLang, targetLang, btn) {
 
     btn.textContent = "Translating DOM...";
 
-    // 1. Gather text from the page DOM
     const [{ result: pageTexts }] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
@@ -103,7 +87,6 @@ export async function translateWebpage(sourceLang, targetLang, btn) {
       },
     });
 
-    // 2. Translate text strings within the sidepanel
     const translatedTexts = [];
     const batchSize = 10;
     for (let i = 0; i < pageTexts.length; i += batchSize) {
@@ -117,7 +100,6 @@ export async function translateWebpage(sourceLang, targetLang, btn) {
       translatedTexts.push(...results);
     }
 
-    // 3. Write translations back into webpage DOM
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       args: [translatedTexts],

@@ -1,41 +1,22 @@
-// modules/qa.js
-// Responsible for maintaining a multi-turn chat session with the page using Chrome's Prompt API.
-
 let qaSession = null;
+let hasGivenContext = false;
 
-/**
- * Initializes or returns the existing Q&A session for the given text.
- * @param {string} pageText - The extracted text of the current page.
- * @returns {Promise<Object>} The active LanguageModel session.
- */
+// Initializes or returns the existing Q&A session
 async function getOrCreateSession(pageText) {
   if (qaSession) {
     return qaSession;
   }
 
-  // Cap text length to avoid exceeding context window limits
-  const snippet = pageText.slice(0, 4000);
-  
   qaSession = await LanguageModel.create({
-    systemPrompt: `You are an AI assistant integrated into a browser extension. Your task is to help the user understand the webpage they are currently viewing. 
-The text of the webpage is provided below. Treat this text as the primary subject of the user's questions or requests (for example, if they say "summarize this page", summarize the text below). Do not ask the user to provide the text, because it is already provided here.
-
---- WEBPAGE TEXT ---
-${snippet}
--------------------`,
-    expectedInputLanguages: ["en"],
-    expectedOutputLanguages: ["en"],
+    systemPrompt: `You are an AI assistant integrated into a browser extension. Your task is to help the user understand the webpage they are currently viewing. Always provide helpful, concise answers based on the context provided.`,
   });
+  
+  hasGivenContext = false;
 
   return qaSession;
 }
 
-/**
- * Asks a question using the Prompt API, maintaining context from previous questions.
- * @param {string} pageText - The extracted text of the current page.
- * @param {string} question - The user's question.
- * @returns {Promise<string>} The AI's answer.
- */
+// Asks a question using the Prompt API
 export async function askQuestion(pageText, question) {
   if (!window.LanguageModel) {
     throw new Error("Prompt API (LanguageModel) is not supported or enabled in this browser.");
@@ -43,17 +24,29 @@ export async function askQuestion(pageText, question) {
 
   const session = await getOrCreateSession(pageText);
   
-  // prompt() retains the conversation history within the session automatically.
-  const answer = await session.prompt(question);
+  let finalQuestion = question;
+  if (!hasGivenContext) {
+    const snippet = pageText.slice(0, 4000);
+    finalQuestion = `Here is the text of the webpage we are looking at:
+
+--- WEBPAGE TEXT ---
+${snippet}
+-------------------
+
+Based on the text above, please answer my question: ${question}`;
+    
+    hasGivenContext = true;
+  }
+  
+  const answer = await session.prompt(finalQuestion);
   return answer;
 }
 
-/**
- * Clears the active chat session.
- */
+// Clears the active chat session
 export function clearQaSession() {
   if (qaSession) {
     qaSession.destroy();
     qaSession = null;
   }
+  hasGivenContext = false;
 }
